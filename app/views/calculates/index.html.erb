@@ -1,0 +1,112 @@
+
+<center>
+    <h3>One Page <i>CRM</i> Calculator</h3>
+    <div class="col-md-3">
+        <form>
+            <table class="table table-bordered ">
+                <tr rowspan="4">
+                    <td colspan="4">
+                        <textarea rows="4" cols="50" disabled style="resize: none;"  class="form-control" name="displayScreen" id="displayScreen">
+                        </textarea>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="2"><input type="number" name="field_one" id="field_one" class="form-control" placeholder="a" onchange="checkNumber(this);" /></td>
+                    <td colspan="2"><input type="number" name="field_two" id="field_two" class="form-control" placeholder="b" onchange="checkNumber(this);" /></td>
+                </tr>
+                <tr>
+                    <td><button class='btn btn-primary' id="sum" onclick="return validator(this);">Sum</button></td>
+                    <td><button class='btn btn-primary' id="dif" onclick="return validator(this);">Difference</button></td>
+                    <td><button class='btn btn-primary' id="mul" onclick="return validator(this);">Multiplication</button></td>
+                    <td><button class='btn btn-primary' id="div" onclick="return validator(this);">Division</button></td>
+                </tr>
+
+            </table>
+        </form>    
+    </div>
+
+</center>
+
+
+<script>
+    function checkNumber(data){
+        var theId = data.id;
+        var theNumber = data.value;
+        if (theNumber < 0 || theNumber > 99){
+            document.querySelector('#sum').disabled = true;
+            document.querySelector('#dif').disabled = true;
+            document.querySelector('#mul').disabled = true;
+            document.querySelector('#div').disabled = true;
+            document.getElementById("displayScreen").value = "Error!! Input field must be numbers between 0-99.";
+        }
+        else{
+            document.querySelector('#sum').disabled = false;
+            document.querySelector('#dif').disabled = false;
+            document.querySelector('#mul').disabled = false;
+            document.querySelector('#div').disabled = false;
+            document.getElementById("displayScreen").value = "";
+        }
+    }
+
+    function validator(theOperand){
+        var field_one = document.getElementById("field_one").value;
+        var field_two = document.getElementById("field_two").value;
+        var theOperand = theOperand.id
+        console.log(theOperand);
+        if(field_one == "" || field_two == "" ){
+            document.getElementById("displayScreen").value = "Error!! Both input fields must be filled before a button selected."; 
+            return false;
+        }
+
+        if (field_one < 0 || field_one > 99){
+            document.getElementById("displayScreen").value = "Error!! Input field a must be numbers between 0-99."; 
+            return false;
+        }
+        
+        if (field_two < 0 || field_two > 99){
+            document.getElementById("displayScreen").value = "Error!! Input field b must be numbers between 0-99."; 
+            return false;
+        }
+
+        // lock all fields and show calculating in text field box
+        document.getElementById("field_one").disabled = true;
+        document.getElementById("field_two").disabled = true;
+        document.querySelector('#sum').disabled = true;
+        document.querySelector('#dif').disabled = true;
+        document.querySelector('#mul').disabled = true;
+        document.querySelector('#div').disabled = true;
+        document.getElementById("displayScreen").value = "Calculating!";
+
+
+
+        $.ajax({
+            type: "POST",
+            async: true,
+            data: {
+                field_one: field_one, field_two: field_two, operand: theOperand
+            },
+            cache: false,
+            url: "<%= calculate_path %>", 
+            success: function (response) {
+                if(response.ErrorCode == "200"){
+                    document.getElementById("displayScreen").value = "Operation: "+response.theOperation+" \r\nResult:"+response.theResult+" \r\nID:"+response.theId+" \r\nCount:"+response.PreviousCalls;
+                }
+                else{
+                    document.getElementById("displayScreen").value = "Error! "+response.ErrorDEsc;
+                }
+
+                document.getElementById("field_one").disabled = false;
+                document.getElementById("field_two").disabled = false;
+                document.querySelector('#sum').disabled = false;
+                document.querySelector('#dif').disabled = false;
+                document.querySelector('#mul').disabled = false;
+                document.querySelector('#div').disabled = false;
+            },
+            error: function (xhr, status, error) {
+                alert(xhr.responseText);
+            }
+        });
+        return false;
+    }
+</script>
